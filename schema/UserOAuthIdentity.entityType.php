@@ -57,6 +57,21 @@ return [
       ],
     ],
   ],
-  'getIndices' => fn() => [],
+  'getIndices' => fn() => [
+    'index_client_id_subject' => [
+      'fields' => [
+        'client_id' => TRUE,
+        'subject' => TRUE,
+      ],
+      'unique' => TRUE,
+    ],
+    'index_user_id_client_id' => [
+      'fields' => [
+        'user_id' => TRUE,
+        'client_id' => TRUE,
+      ],
+      'unique' => TRUE,
+    ],
+  ],
   'getPaths' => fn() => [],
 ];

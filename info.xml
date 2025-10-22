@@ -55,4 +55,7 @@
     <mixin>entity-types-php@2.0.0</mixin>
   </mixins>
   <upgrader>CiviMix\Schema\OauthLogin\AutomaticUpgrader</upgrader>
+  <requires>
+    <ext>oauth-client</ext>
+  </requires>
 </extension>

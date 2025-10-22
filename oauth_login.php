@@ -56,14 +56,47 @@ function oauth_login_civicrm_oauthProviders(&$providers) {
 }
 
 function oauth_login_civicrm_oauthReturn($tokenRecord, &$nextUrl) {
+  if (CRM_Core_Session::getLoggedInContactID()) {
+    return;
+  }
   if (!$tokenRecord['resource_owner']['email_verified']) {
     return;
   }
-  $user = \Civi\Api4\User::get(FALSE)
-    ->addSelect('id')
-    ->addWhere('uf_name', '=', $tokenRecord['resource_owner']['email'])
+  $existingIdentity = \Civi\Api4\UserOAuthIdentity::get(FALSE)
+    ->addSelect('user_id')
+    ->addWhere('client_id', '=', $tokenRecord['client_id'])
+    ->addWhere('subject', '=', $tokenRecord['resource_owner']['email'])
     ->execute()
-    ->single();
+    ->first();
+  if (!empty($existingIdentity['user_id'])) {
+    $user = ['id' => $existingIdentity['user_id']];
+  }
+  else {
+    $user = \Civi\Api4\User::get(FALSE)
+      ->addSelect('id', 'user_oauth_identity.subject')
+      ->addJoin(
+        'UserOAuthIdentity AS user_oauth_identity',
+        'LEFT',
+        ['id', '=', 'user_oauth_identity.user_id'],
+        ['user_oauth_identity.client_id', '=', $tokenRecord['client_id']]
+      )
+      ->addWhere('uf_name', '=', $tokenRecord['resource_owner']['email'])
+      ->execute()
+      ->single();
+
+    if (!empty($user['user_oauth_identity.subject']) && $user['user_oauth_identity.subject'] != $tokenRecord['resource_owner']['sub']) {
+      throw new CRM_Core_Exception('User is already linked to a different remote identity of the same issuer.');
+    }
+
+    if (empty($user['user_oauth_identity.subject'])) {
+      \Civi\Api4\UserOAuthIdentity::create(FALSE)
+        ->addValue('user_id', $user['id'])
+        ->addValue('client_id', $tokenRecord['client_id'])
+        ->addValue('subject', $tokenRecord['resource_owner']['sub'])
+        ->execute();
+    }
+
+  }
 
   authx_login([
     'flow' => 'login',
