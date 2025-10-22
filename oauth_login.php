@@ -65,7 +65,7 @@ function oauth_login_civicrm_oauthReturn($tokenRecord, &$nextUrl) {
   $existingIdentity = \Civi\Api4\UserOAuthIdentity::get(FALSE)
     ->addSelect('user_id')
     ->addWhere('client_id', '=', $tokenRecord['client_id'])
-    ->addWhere('subject', '=', $tokenRecord['resource_owner']['email'])
+    ->addWhere('subject', '=', $tokenRecord['resource_owner']['sub'])
     ->execute()
     ->first();
   if (!empty($existingIdentity['user_id'])) {
