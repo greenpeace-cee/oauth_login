@@ -19,7 +19,61 @@ function oauth_login_civicrm_config(&$config): void {
  * @link https://docs.civicrm.org/dev/en/latest/hooks/hook_civicrm_install
  */
 function oauth_login_civicrm_install(): void {
+  // grant "create OAuth tokens via auth code flow" to the "everyone" group
+  $everyoneExists = \Civi\Api4\Role::get(FALSE)
+    ->selectRowCount()
+    ->addWhere('name', '=', 'everyone')
+    ->execute()
+    ->count() == 1;
+  if ($everyoneExists) {
+    \Civi\Api4\RolePermission::update(FALSE)
+      ->addValue('granted_everyone', TRUE)
+      ->addWhere('name', '=', 'create OAuth tokens via auth code flow')
+      ->execute();
+    CRM_Core_Session::setStatus(
+      E::ts('The "create OAuth tokens via auth code flow" permission was granted to the "everyone" role to allow unauthenticated users to login using OAuth.'),
+      E::ts('OAuth Login Permission Added'),
+      'info'
+    );
+  }
   _oauth_login_civix_civicrm_install();
+}
+
+function oauth_login_civicrm_check(&$messages, $statusNames, $includeDisabled) {
+  if ($statusNames && !in_array('oauth_login_permission', $statusNames)) {
+    return;
+  }
+  $everyoneExists = \Civi\Api4\Role::get(FALSE)
+      ->selectRowCount()
+      ->addWhere('name', '=', 'everyone')
+      ->execute()
+      ->count() == 1;
+
+  if ($everyoneExists) {
+    $rolePermission = \Civi\Api4\RolePermission::get(FALSE)
+      ->addWhere('name', '=', 'create OAuth tokens via auth code flow')
+      ->addSelect('granted_everyone')
+      ->execute()
+      ->single();
+    if ($rolePermission['granted_everyone']) {
+      // permission is granted to everyone, ok
+      return;
+    }
+  }
+  $message = new CRM_Utils_Check_Message(
+    'oauth_login_permission',
+    E::ts('To login using OAuth, unauthenticated users need to be allowed to use the auth code flow. The "create OAuth tokens via auth code flow" permission should be granted to the "everyone" role.'),
+    E::ts('Missing Permission for OAuth Login'),
+    \Psr\Log\LogLevel::WARNING,
+    'fa-flag'
+  );
+  $message->addAction(
+    E::ts('Administer Roles'),
+    FALSE,
+    'href',
+    ['path' => 'civicrm/admin/roles']
+  );
+  $messages[] = $message;
 }
 
 /**
