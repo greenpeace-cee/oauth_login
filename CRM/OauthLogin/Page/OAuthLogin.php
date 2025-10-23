@@ -9,7 +9,7 @@ class CRM_OauthLogin_Page_OAuthLogin extends CRM_Core_Page {
     $start = OAuthClient::authorizationCode(FALSE)
       ->setStorage('OAuthSessionToken')
       ->setTag('login')
-      ->setLandingUrl(CRM_Utils_System::url('civicrm/oauth-login-done', NULL, TRUE, NULL, FALSE))
+      ->setLandingUrl(CRM_Utils_System::url('civicrm/', NULL, TRUE, NULL, FALSE))
       ->addWhere('id', '=', CRM_Utils_Request::retrieve('id', 'Integer'))
       ->execute()
       ->first();
