@@ -1,0 +1,9 @@
+<div af-fieldset="">
+  <div class="af-container af-layout-inline">
+    <af-field name="user_id.username" defn="{label: 'Username', input_attrs: {}, required: false}" />
+    <af-field name="UserOAuthIdentity_User_user_id_01.uf_name" />
+    <af-field name="UserOAuthIdentity_User_user_id_01.is_active" defn="{input_type: 'Radio'}" />
+    <af-field name="UserOAuthIdentity_OAuthClient_client_id_01.provider" defn="{input_attrs: {multiple: true}, label: 'OAuth Provider', required: false}" />
+  </div>
+  <crm-search-display-table search-name="OAuth_Login_User_Identities" display-name="OAuth_Login_User_Identities_Table"></crm-search-display-table>
+</div>

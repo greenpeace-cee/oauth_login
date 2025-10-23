@@ -10,4 +10,9 @@ namespace Civi\Api4;
  */
 class UserOAuthIdentity extends Generic\DAOEntity {
 
+  public static function permissions() {
+    return [
+      'default' => ['cms:administer users'],
+    ];
+  }
 }
