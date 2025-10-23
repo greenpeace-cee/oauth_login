@@ -25,6 +25,7 @@ return [
       'title' => E::ts('User ID'),
       'sql_type' => 'int unsigned',
       'input_type' => 'EntityRef',
+      'required' => TRUE,
       'description' => E::ts('FK to User'),
       'input_attrs' => [
         'label' => E::ts('User'),
@@ -39,6 +40,7 @@ return [
       'title' => E::ts('Client ID'),
       'sql_type' => 'int unsigned',
       'input_type' => 'EntityRef',
+      'required' => TRUE,
       'description' => E::ts('Client ID'),
       'entity_reference' => [
         'entity' => 'OAuthClient',
