@@ -110,9 +110,26 @@ function oauth_login_civicrm_oauthProviders(&$providers) {
 }
 
 function oauth_login_civicrm_oauthReturn($tokenRecord, &$nextUrl) {
+  if ($tokenRecord['tag'] != 'Login') {
+    return;
+  }
   if (CRM_Core_Session::getLoggedInContactID()) {
     return;
   }
+  $idToken = new \Civi\OAuth\Login\IdToken($tokenRecord);
+  if (!$idToken->validate()) {
+    foreach ($idToken->getValidationMessages() as $message) {
+      Civi::log('oauth_login')->error("ID Token validation error for OAuthClient {$tokenRecord['client_id']}: {$message}");
+    }
+    CRM_Core_Session::setStatus(
+      E::ts('Unable to validate ID claims provided by the identity provider.'),
+      E::ts('Login failed'),
+      'error'
+    );
+    $nextUrl = CRM_Utils_System::url('civicrm/login');
+    return;
+  }
+  // TODO: refactor this into \Civi\OAuth\Login\IdToken and/or other classes
   if (!$tokenRecord['resource_owner']['email_verified']) {
     // only accept verified emails
     // TODO: this may not work across other identity providers
