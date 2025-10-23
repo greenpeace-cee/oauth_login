@@ -1,0 +1,27 @@
+site_name: OAuth Login
+site_description: Login to CiviCRM using OAuth2
+site_author: Patrick Figel
+repo_url: https://github.com/greenpeace-cee/oauth_login
+
+theme:
+  name: material
+
+nav:
+  - Introduction: index.md
+
+markdown_extensions:
+  - attr_list
+  - admonition
+  - def_list
+  - codehilite
+  - toc:
+      permalink: true
+  - pymdownx.superfences
+  - pymdownx.inlinehilite
+  - pymdownx.tilde
+  - pymdownx.betterem
+  - pymdownx.mark
+
+plugins:
+  - search:
+      lang: en

@@ -44,10 +44,10 @@ function oauth_login_civicrm_check(&$messages, $statusNames, $includeDisabled) {
     return;
   }
   $everyoneExists = \Civi\Api4\Role::get(FALSE)
-      ->selectRowCount()
-      ->addWhere('name', '=', 'everyone')
-      ->execute()
-      ->count() == 1;
+    ->selectRowCount()
+    ->addWhere('name', '=', 'everyone')
+    ->execute()
+    ->count() == 1;
 
   if ($everyoneExists) {
     $rolePermission = \Civi\Api4\RolePermission::get(FALSE)
@@ -85,7 +85,6 @@ function oauth_login_civicrm_enable(): void {
   _oauth_login_civix_civicrm_enable();
 }
 
-
 function oauth_login_civicrm_oauthProviders(&$providers) {
   $providers['google_login'] = [
     'name' => 'google_login',
@@ -103,9 +102,9 @@ function oauth_login_civicrm_oauthProviders(&$providers) {
       'templates' => [
         'Contact' => [
           'email' => '{{token.raw.email}}',
-        ]
-      ]
-    ]
+        ],
+      ],
+    ],
   ];
 }
 
@@ -194,6 +193,6 @@ function oauth_login_civicrm_oauthReturn($tokenRecord, &$nextUrl) {
     'useSession' => TRUE,
     'principal' => [
       'userId' => $user['id'],
-    ]
+    ],
   ]);
 }

@@ -19,4 +19,5 @@ class IdToken {
   public function getValidationMessages(): array {
     return $this->validationMessages;
   }
+
 }
