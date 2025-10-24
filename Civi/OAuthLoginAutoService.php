@@ -43,7 +43,7 @@ class OAuthLoginAutoService extends AutoService implements EventSubscriberInterf
 
         foreach ($oauth_clients as $client) {
           $id = $client['id'];
-          $href = CRM_Utils_System::url('civicrm/login/oauth', [ 'id' => $id ]);
+          $href = CRM_Utils_System::url('civicrm/login/oauth', ['id' => $id]);
           $provider = $oauth_providers[$client['provider']]['title'];
 
           $login_form->append("<li><a href=\"$href\">Sign in with $provider ($id)</a></li>");
