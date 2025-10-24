@@ -15,4 +15,5 @@ class UserOAuthIdentity extends Generic\DAOEntity {
       'default' => ['cms:administer users'],
     ];
   }
+
 }
