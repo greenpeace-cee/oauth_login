@@ -86,19 +86,6 @@ function oauth_login_civicrm_enable(): void {
 }
 
 function oauth_login_civicrm_oauthProviders(&$providers) {
-  $ingest = function($pat) use (&$providers) {
-    $files = (array) glob($pat);
-    foreach ($files as $file) {
-      if (!defined('CIVICRM_TEST') && preg_match(';\.test\.json$;', $file)) {
-        continue;
-      }
-      $name = preg_replace(';\.(dist\.|test\.|)json$;', '', basename($file));
-      $provider = json_decode(file_get_contents($file), 1);
-      $provider['name'] = $name;
-      $providers[$name] = $provider;
-    }
-  };
-
   $files = (array) glob(E::path('oauth-providers') . DIRECTORY_SEPARATOR . '*.json');
   foreach($files as $file) {
     if (!defined('CIVICRM_TEST') && preg_match(';\.test\.json$;', $file)) {
@@ -133,71 +120,5 @@ function oauth_login_civicrm_oauthReturn($tokenRecord, &$nextUrl) {
     $nextUrl = CRM_Utils_System::url('civicrm/login');
     return;
   }
-  // TODO: refactor this into \Civi\OAuth\Login\IdToken and/or other classes
-  if (!$tokenRecord['resource_owner']['email_verified']) {
-    // only accept verified emails
-    // TODO: this may not work across other identity providers
-    return;
-  }
-  // do we have an existing link between a user and the sub(ject) for this provider?
-  $existingIdentity = \Civi\Api4\UserOAuthIdentity::get(FALSE)
-    ->addSelect('user_id')
-    ->addWhere('client_id', '=', $tokenRecord['client_id'])
-    ->addWhere('subject', '=', $tokenRecord['resource_owner']['sub'])
-    ->addJoin('User AS user', 'INNER', ['user_id', '=', 'user.id'], ['user.is_active', '=', 1])
-    ->execute()
-    ->first();
-  if (!empty($existingIdentity['user_id'])) {
-    $user = ['id' => $existingIdentity['user_id']];
-  }
-  else {
-    // no existing link found, look up active users by email
-    $user = \Civi\Api4\User::get(FALSE)
-      ->addSelect('id', 'user_oauth_identity.subject')
-      ->addJoin(
-        'UserOAuthIdentity AS user_oauth_identity',
-        'LEFT',
-        ['id', '=', 'user_oauth_identity.user_id'],
-        ['user_oauth_identity.client_id', '=', $tokenRecord['client_id']]
-      )
-      ->addWhere('uf_name', '=', $tokenRecord['resource_owner']['email'])
-      ->addWhere('is_active', '=', TRUE)
-      ->execute()
-      ->first();
-
-    if (!empty($user['user_oauth_identity.subject']) && $user['user_oauth_identity.subject'] != $tokenRecord['resource_owner']['sub']) {
-      CRM_Core_Session::setStatus(
-        E::ts('User is already linked to a different remote identity of the same identity provider.'),
-        E::ts('Login failed'),
-        'error'
-      );
-      CRM_Utils_System::redirect(CRM_Utils_System::url('civicrm/login'));
-    }
-
-    // link subject to user for this provider
-    if (!empty($user['id']) && empty($user['user_oauth_identity.subject'])) {
-      \Civi\Api4\UserOAuthIdentity::create(FALSE)
-        ->addValue('user_id', $user['id'])
-        ->addValue('client_id', $tokenRecord['client_id'])
-        ->addValue('subject', $tokenRecord['resource_owner']['sub'])
-        ->execute();
-    }
-  }
-
-  if (empty($user['id'])) {
-    CRM_Core_Session::setStatus(
-      E::ts('No active user was found for the provided identity. Make sure your email matches the one used by your identity provider.'),
-      E::ts('Login failed'),
-      'error'
-    );
-    CRM_Utils_System::redirect(CRM_Utils_System::url('civicrm/login'));
-  }
-
-  authx_login([
-    'flow' => 'login',
-    'useSession' => TRUE,
-    'principal' => [
-      'userId' => $user['id'],
-    ]
-  ]);
+  $idToken->login();
 }
