@@ -1,0 +1,23 @@
+{ 
+  "title": "Google", 
+  "class": "League\\OAuth2\\Client\\Provider\\Google", 
+  "options": { 
+    "urlAuthorize": "https://accounts.google.com/o/oauth2/v2/auth", 
+    "urlAccessToken": "https://www.googleapis.com/oauth2/v4/token", 
+    "urlResourceOwnerDetails": "https://openidconnect.googleapis.com/v1/userinfo", 
+    "accessType": "offline",
+    "scopeSeparator": " ", 
+    "scopes": [ 
+      "openid", 
+      "profile",
+      "email" 
+    ],
+    "prompt": "select_account consent",
+    "templates": {
+      "Contact": {
+        "email": "{{token.raw.email}}"
+      }
+    }
+  },
+  "tags": ["Login"]
+}

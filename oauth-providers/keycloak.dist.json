@@ -1,0 +1,18 @@
+{ 
+  "title": "Keycloak", 
+  "class": "Civi\\OAuth\\CiviGenericProvider", 
+  "options": { 
+    "urlAuthorize": "{{url}}/realms/{{realm}}/protocol/openid-connect/auth", 
+    "urlAccessToken": "{{url}}/realms/{{realm}}/protocol/openid-connect/token", 
+    "urlResourceOwnerDetails": "{{use_id_token}}", 
+    "scopeSeparator": " ", 
+    "scopes": [ 
+      "openid", 
+      "email" 
+    ], 
+    "tenancy": false,
+    "url": true,
+    "realm": true
+  },
+  "tags": ["Login"]
+}

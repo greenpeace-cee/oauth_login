@@ -87,26 +87,31 @@ function oauth_login_civicrm_enable(): void {
 
 
 function oauth_login_civicrm_oauthProviders(&$providers) {
-  $providers['google_login'] = [
-    'name' => 'google_login',
-    'title' => 'Google',
-    'class' => 'League\OAuth2\Client\Provider\Google',
-    'tags' => ['Login'],
-    'options' => [
-      'urlAuthorize' => 'https://accounts.google.com/o/oauth2/v2/auth',
-      'urlAccessToken' => 'https://www.googleapis.com/oauth2/v4/token',
-      'urlResourceOwnerDetails' => 'https://openidconnect.googleapis.com/v1/userinfo',
-      'accessType' => 'offline',
-      'scopeSeparator' => ' ',
-      'scopes' => ['openid', 'profile', 'email'],
-      'prompt' => 'select_account consent',
-      'templates' => [
-        'Contact' => [
-          'email' => '{{token.raw.email}}',
-        ]
-      ]
-    ]
-  ];
+  $ingest = function($pat) use (&$providers) {
+    $files = (array) glob($pat);
+    foreach ($files as $file) {
+      if (!defined('CIVICRM_TEST') && preg_match(';\.test\.json$;', $file)) {
+        continue;
+      }
+      $name = preg_replace(';\.(dist\.|test\.|)json$;', '', basename($file));
+      $provider = json_decode(file_get_contents($file), 1);
+      $provider['name'] = $name;
+      $providers[$name] = $provider;
+    }
+  };
+
+  $files = (array) glob(E::path('oauth-providers') . DIRECTORY_SEPARATOR . '*.json');
+  foreach($files as $file) {
+    if (!defined('CIVICRM_TEST') && preg_match(';\.test\.json$;', $file)) {
+      continue;
+    }
+    $name = preg_replace(';\.(dist\.|test\.|)json$;', '', basename($file));
+    $provider = json_decode(file_get_contents($file), 1);
+    if ($provider) {
+      $provider['name'] = $name;
+      $providers[$name] = $provider;
+    }
+  }
 }
 
 function oauth_login_civicrm_oauthReturn($tokenRecord, &$nextUrl) {
