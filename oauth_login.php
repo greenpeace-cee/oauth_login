@@ -85,7 +85,6 @@ function oauth_login_civicrm_enable(): void {
   _oauth_login_civix_civicrm_enable();
 }
 
-
 function oauth_login_civicrm_oauthProviders(&$providers) {
   $ingest = function($pat) use (&$providers) {
     $files = (array) glob($pat);
