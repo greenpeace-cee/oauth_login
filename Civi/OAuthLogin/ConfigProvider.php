@@ -24,8 +24,12 @@ class ConfigProvider extends AutoService {
     return $this->readBool('oauth_login_provisioning_enabled');
   }
 
-  public function getContactMatchier(): string {
-    return $this->get('oauth_login_contact_matcher');
+  public function getContactCreateMatchier(): string {
+    return $this->get('oauth_login_contact_create_matcher');
+  }
+
+  public function getContactUpdateMatchier(): string {
+    return $this->get('oauth_login_contact_update_matcher');
   }
 
   /**

@@ -51,16 +51,24 @@ class IdToken {
     return $this->tokenRecord['resource_owner']['sub'];
   }
 
+  public function getUsername(): string {
+    return $this->tokenRecord['resource_owner']['preferred_username'];
+  }
+
   public function getEmail(): string {
     return $this->tokenRecord['resource_owner']['email'];
   }
 
   public function getFirstName():? string {
-    return NULL;
+    return $this->tokenRecord['resource_owner']['given_name'] ?? NULL;
+  }
+
+  public function getMiddleName():? string {
+    return $this->tokenRecord['resource_owner']['middle_name'] ?? NULL;
   }
 
   public function getLastName():? string {
-    return NULL;
+    return $this->tokenRecord['resource_owner']['family_name'] ?? NULL;
   }
 
 }

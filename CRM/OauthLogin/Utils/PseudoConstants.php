@@ -17,9 +17,15 @@ class CRM_OauthLogin_Utils_PseudoConstants {
     return $roles;
   }
 
-  public static function contactMatchers(): array {
+  public static function contactCreateMatchers(): array {
     /** @var Service $service */
     $service = \Civi::service('civi.oauthlogin');
-    return $service->getContactMatcherList();
+    return $service->getContactCreateMatcherList();
+  }
+
+  public static function contactUpdateMatchers(): array {
+    /** @var Service $service */
+    $service = \Civi::service('civi.oauthlogin');
+    return $service->getContactUpdateMatcherList();
   }
 }

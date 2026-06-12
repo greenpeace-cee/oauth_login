@@ -7,7 +7,7 @@
 namespace Civi\OAuthLogin;
 
 use Civi\Core\Service\AutoService;
-use Civi\OAuthLogin\ContactMatcher\BasicContactCreation;
+use Civi\OAuthLogin\ContactMatcher\BasicContactMatcher;
 use Civi\OAuthLogin\ContactMatcher\ContactMatcher;
 use CRM_Utils_System;
 use CRM_Core_Session;
@@ -20,7 +20,9 @@ class Service extends AutoService {
 
   protected $contactMatchers = [];
 
-  protected $contactMatcherList = [];
+  protected $contactCreateMatcherList = [];
+
+  protected $contactUpdateMatcherList = [];
 
   /**
    * @var \Civi\OAuthLogin\ConfigProvider
@@ -33,33 +35,63 @@ class Service extends AutoService {
   public function __construct(ConfigProvider $configProvider)
   {
     $this->configProvider = $configProvider;
-    $this->addMatcher(new BasicContactCreation());
+    $this->addMatcher(new BasicContactMatcher());
   }
 
   public function addMatcher(ContactMatcher $matcher) {
     $this->contactMatchers[$matcher->getName()] = $matcher;
-    $this->contactMatcherList[$matcher->getName()] = $matcher->getTitle();
+    $this->contactCreateMatcherList[$matcher->getName()] = $matcher->getTitleForCreate();
+    $this->contactUpdateMatcherList[$matcher->getName()] = $matcher->getTitleForUpdate();
   }
 
-  public function getContactMatcher():? ContactMatcher {
-    $name = $this->configProvider->getContactMatchier();
+  /**
+   * Get the contact matcher class for creating a contact.
+   */
+  public function getContactCreateMatcher():? ContactMatcher {
+    $name = $this->configProvider->getContactCreateMatchier();
     if (!empty($name) && isset($this->contactMatchers[$name])) {
       return $this->contactMatchers[$name];
     }
     return NULL;
   }
 
-  public function getContactMatcherList(): array {
-    return $this->contactMatcherList;
+  /**
+   * Get the contact matcher class for updating an existing contact.
+   */
+  public function getContactUpdateMatcher():? ContactMatcher {
+    $name = $this->configProvider->getContactUpdateMatchier();
+    if (!empty($name) && isset($this->contactMatchers[$name])) {
+      return $this->contactMatchers[$name];
+    }
+    return NULL;
+  }
+
+  public function getContactCreateMatcherList(): array {
+    return $this->contactCreateMatcherList;
+  }
+
+  public function getContactUpdateMatcherList(): array {
+    return $this->contactUpdateMatcherList;
   }
 
   public function getConfigProvider(): ConfigProvider {
     return $this->configProvider;
   }
 
+  /**
+   * Login a user based on the IdToken
+   * 
+   * Checks first if a user exist. If it does it tries to update its related contact 
+   * based on the settings. If it does not exist it will create a contact and a user record.
+   *
+   * It then creates a session. And stores the access token, refresh token and session state in the session.
+   */
   public function login(IdToken $idToken): void {
     $userProvisioning = new UserProvisioning();
-    $user = $userProvisioning->findExistingUserId($idToken);
+    $user = $userProvisioning->findExistingUser($idToken);
+    if (!empty($user)) {
+      $user = $userProvisioning->updateUser($idToken, $user);
+    } 
     if (empty($user) && $this->configProvider->isProvisioningEnabled()) {
       $user = $userProvisioning->createUser($idToken);
     } elseif (empty($user)) {
@@ -73,7 +105,7 @@ class Service extends AutoService {
         'flow' => 'login',
         'useSession' => TRUE,
         'principal' => [
-          'userId' => $user['user_id'],
+          'userId' => $user['id'],
         ]
       ]);
       $session = \CRM_Core_Session::singleton();

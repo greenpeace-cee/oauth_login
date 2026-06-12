@@ -2,6 +2,8 @@
 
 namespace Civi\OAuthLogin;
 
+use Civi\Api4\Contact;
+use Civi\Api4\User;
 use Civi\OAuthLogin\ConfigProvider;
 
 class UserProvisioning {
@@ -16,18 +18,17 @@ class UserProvisioning {
   public function createUser(IdToken $idToken):? array {
     /** @var Service */
     $service = \Civi::service('civi.oauthlogin');
-    $matcher = $service->getContactMatcher();
+    $matcher = $service->getContactCreateMatcher();
     $contactId = NULL;
     if ($matcher) {
-      $contactId = $matcher->match($idToken);
+      $contactId = $matcher->findOrCreate($idToken);
     }
     if (!empty($contactId)) {
-      $username = $idToken->getEmail();
-      $ufName = $idToken->getEmail();
+      $username = $idToken->getUsername();
       try {
         $user = \Civi\Api4\User::create(FALSE)
           ->addValue('username', $username)
-          ->addValue('uf_name', $ufName)
+          ->addValue('uf_name', $username)
           ->addValue('contact_id', $contactId)
           ->addValue('is_active', TRUE)
           ->execute()
@@ -49,36 +50,94 @@ class UserProvisioning {
     return NULL;
   }
 
-  public function findExistingUserId(IdToken $token):? array {
+  public function updateUser(IdToken $idToken, array $user):? array {
+    /** @var Service */
+    $service = \Civi::service('civi.oauthlogin');
+    $contactId = NULL;
+    $username = $idToken->getUsername();
+    if (empty($user['contact_id']) || !$this->doesContactExists($user['contact_id'])) {
+      $matcher = $service->getContactCreateMatcher();
+      if ($matcher) {
+        $contactId = $matcher->findOrCreate($idToken);
+      }
+    } else {
+      $matcher = $service->getContactUpdateMatcher();
+      if ($matcher) {
+        $contactId = $matcher->update($user['contact_id'], $idToken);
+      }
+      if (empty($contactId)) {
+        $matcher = $service->getContactCreateMatcher();
+        if ($matcher) {
+          $contactId = $matcher->findOrCreate($idToken);
+        }
+      }
+    }
+    if (!empty($contactId)) {
+      try {
+        User::update(FALSE)
+          ->addValue('username', $username)
+          ->addValue('uf_name', $username)
+          ->addValue('contact_id', $contactId)
+          ->addWhere('id', '=', $user['id'])
+          ->execute();
+        $user['contact_id'] = $contactId;
+        return $user;
+      } catch (\Exception $e) { }
+    }
+    return NULL;
+  }
+
+  public function findExistingUser(IdToken $token):? array {
     $existingIdentity = \Civi\Api4\UserOAuthIdentity::get(FALSE)
-      ->addSelect('user_id', 'subject', 'user.is_active as is_active')
+      ->addSelect('user_id', 'subject')
       ->addWhere('client_id', '=', $token->getClientId())
       ->addWhere('subject', '=', $token->getSubject())
-      ->addJoin('User AS user', 'INNER', ['user_id', '=', 'user.id'])
       ->execute()
       ->first();
     if (!empty($existingIdentity['user_id'])) {
-      return $existingIdentity;
+      $user = User::get(FALSE)
+        ->addWhere('id', '=', $existingIdentity['user_id'])
+        ->execute()
+        ->first();
+      $user['subject'] = $existingIdentity['subject'];
+      return $user;
     }
 
     // no existing link found, look up active users by email
-    $user = \Civi\Api4\User::get(FALSE)
-      ->addSelect('id as user_id', 'user_oauth_identity.subject as subject', 'is_active')
+    $oauthIdentity = \Civi\Api4\User::get(FALSE)
+      ->addSelect('id', 'user_oauth_identity.subject as subject', 'is_active', 'contact_id')
       ->addJoin('UserOAuthIdentity AS user_oauth_identity', 'LEFT', ['id', '=', 'user_oauth_identity.user_id'])
       ->addWhere('user_oauth_identity.client_id', '=', $token->getClientId())
       ->addWhere('uf_name', '=', $token->getEmail())
       ->execute()
       ->first();
 
-    if (!empty($user)) {
-      if (empty($user['subject'])) {
-        $user = $this->linkUserToOAuthIdentity($user, $token);
+    if (!empty($oauthIdentity)) {
+      if (empty($oauthIdentity['subject'])) {
+        $oauthIdentity = $this->linkUserToOAuthIdentity($oauthIdentity, $token);
       }
+      $oauthIdentity = User::get(FALSE)
+        ->addWhere('id', '=', $oauthIdentity['id'])
+        ->execute()
+        ->first();
+      $user['subject'] = $oauthIdentity['subject'];
       return $user;
     }
     
 
     return NULL;
+  }
+
+  private function doesContactExists(int $contactId): bool {
+    try {
+      $contact = Contact::get(FALSE)
+        ->addWhere('is_deleted', '=', FALSE)
+        ->addWhere('id', '=', $contactId)
+        ->execute()
+        ->first();
+      return !empty($contact);
+    } catch (\Exception $e) { }
+    return FALSE;
   }
 
   private function assignDefaultRoles(int $userId): void {
@@ -106,7 +165,7 @@ class UserProvisioning {
 
   private function linkUserToOAuthIdentity(array $user, IdToken $token): array {
     \Civi\Api4\UserOAuthIdentity::create(FALSE)
-        ->addValue('user_id', $user['user_id'])
+        ->addValue('user_id', $user['id'])
         ->addValue('client_id', $token->getClientId())
         ->addValue('subject', $token->getSubject())
         ->execute();

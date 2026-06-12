@@ -20,10 +20,27 @@ abstract class ContactMatcher {
    *   The IdToke class is ouw facade around the above.
    *   Making getting data easier.
    * 
+   *   When NULL is returned no user is created.
+   * 
+   * @return int 
+   *  Returns the Contact ID. Return NULL when creating a contact failed.
+   */
+  abstract public function findOrCreate(IdToken $idToken):? int;
+
+  /**
+   * Update an existing contact upon login.
+   * 
+   * @param $existingContactId
+   *   The existing contact ID of the user
+   * @param IdToken $idToken
+   *   The user ID token coming from the OAuth Provider
+   *   The IdToke class is ouw facade around the above.
+   *   Making getting data easier.
+   * 
    * @return int 
    *  Returns the Contact ID
    */
-  abstract public function match(IdToken $idToken):? int;
+  abstract public function update(int $existingContactId, IdToken $idToken): int;
 
   /**
    * Reverts the contact creation because something went wrong when 
@@ -42,7 +59,12 @@ abstract class ContactMatcher {
   /**
    * Returns the transalted title of this matcher
    */
-  abstract public function getTitle(): string;
+  abstract public function getTitleForCreate(): string;
+
+  /**
+   * Returns the transalted title of this matcher
+   */
+  abstract public function getTitleForUpdate(): string;
 
   public function setConfig(array $config) {
     $this->config;
