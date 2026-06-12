@@ -10,9 +10,11 @@ use Civi\Api4\OAuthClient;
 use Civi\Api4\OAuthProvider;
 use Civi\Core\Event\GenericHookEvent;
 use Civi\OAuthLogin\ConfigProvider;
+use CRM_Afform_Page_AfformBase;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
 use CRM_OauthLogin_ExtensionUtil as E;
+use CRM_Standaloneusers_Page_ChangePassword;
 
 /**
  * Modifies the Standalone auth pages to honour oauthlogin_auth_mode.
@@ -42,28 +44,6 @@ use CRM_OauthLogin_ExtensionUtil as E;
  */
 class LoginFormSubscriber implements EventSubscriberInterface {
 
-  /**
-   * Pages that flow before login completes. Anonymous user → SSO login URL.
-   * Logged-in user lands here only by typing the URL; same redirect is fine
-   * (the Page classes themselves bounce logged-in users to /civicrm/home,
-   *  but in MODE_REQUIRED we just take them straight to the OAuth Login entrypoint
-   *  which will detect the existing session and bounce them home anyway).
-   */
-  private const ANONYMOUS_FLOW_PAGES = [
-    \CRM_Standaloneusers_Page_Login::class,
-    \CRM_Standaloneusers_Page_ResetPassword::class,
-    \CRM_Standaloneusers_Page_TOTPSetup::class,
-  ];
-
-  /**
-   * Pages that only authenticated users reach. Always redirect to /civicrm
-   * with a status message — never to the IdP, since the user already has
-   * a session and bouncing through SSO is pointless.
-   */
-  private const AUTHENTICATED_PAGES = [
-    \CRM_Standaloneusers_Page_ChangePassword::class,
-  ];
-
   public function __construct(private readonly ConfigProvider $config) {}
 
   public static function getSubscribedEvents(): array {
@@ -71,15 +51,20 @@ class LoginFormSubscriber implements EventSubscriberInterface {
   }
 
   public function onPageRun(GenericHookEvent $event): void {
+    $session = \CRM_Core_Session::singleton();
     $page = $event->page;
-    $isAnonFlow = $this->matches($page, self::ANONYMOUS_FLOW_PAGES);
-    $isAuthOnly = $this->matches($page, self::AUTHENTICATED_PAGES);
+    $isAnonFlow = $this->isAnonymousPage($page);
+    $isAuthOnly = $this->isAccountPage($page);
+    $isOAuthSession = $session->get('oauth_login_is_oauth_session') ?? FALSE;
     if (!$isAnonFlow && !$isAuthOnly) {
       return;
     }
 
     $oauthLoginLinks = $this->getOAuthLoginLinks();
     $mode = $this->config->mode();
+    if ($isOAuthSession) {
+      $mode = 'required';
+    }
     if ($mode === ConfigProvider::MODE_DISABLED || !count($oauthLoginLinks)) {
       // OAuth Login is disabled or there or no OAuth Login Clients configured
       return;
@@ -97,11 +82,13 @@ class LoginFormSubscriber implements EventSubscriberInterface {
       return;
     }
 
+    $oauthLoginLink = reset($oauthLoginLinks);
+
     // MODE_REQUIRED.
     if ($isAuthOnly) {
       \CRM_Core_Session::setStatus(
-        ts('Local password changes are disabled. Your account password is managed by your single sign-on provider.'),
-        ts('SSO Enabled'),
+        E::ts('Local password changes are disabled. Your account is managed by %1', [1=>$oauthLoginLink['provider']]),
+        E::ts('SSO Enabled'),
         'info'
       );
       \Civi::log()->debug('OAuthLogin: Required mode — redirecting authenticated user away from password self-service', ['from' => get_class($page)]);
@@ -110,14 +97,29 @@ class LoginFormSubscriber implements EventSubscriberInterface {
     }
 
     // Anonymous-flow page → SSO entrypoint.
-    $oauthLoginLink = reset($oauthLoginLinks);
     \Civi::log()->debug('OAuthLogin: Required mode — redirecting to IdP: ' . $oauthLoginLink['provider'], ['from' => get_class($page)]);
     \CRM_Utils_System::redirect($oauthLoginLink['url']);
   }
 
-  private function matches(object $page, array $classes): bool {
-    foreach ($classes as $class) {
-      if ($page instanceof $class) {
+  private function isAnonymousPage(object $page): bool {
+    if ($page instanceof \CRM_Standaloneusers_Page_Login) {
+      return TRUE;
+    }
+    if ($page instanceof \CRM_Standaloneusers_Page_ResetPassword) {
+      return TRUE;
+    }
+    if ($page instanceof \CRM_Standaloneusers_Page_TOTPSetup) {
+      return TRUE;
+    }
+    return FALSE;
+  }
+
+  private function isAccountPage(object $page): bool {
+    if ($page instanceof CRM_Standaloneusers_Page_ChangePassword) {
+      return TRUE;
+    }
+    if ($page instanceof CRM_Afform_Page_AfformBase) {
+      if (isset($page->urlPath[1]) && $page->urlPath[1] == 'my-account') {
         return TRUE;
       }
     }

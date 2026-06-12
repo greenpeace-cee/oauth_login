@@ -1,6 +1,7 @@
 <?php
 
 use Civi\Api4\Role;
+use Civi\OAuthLogin\Service;
 
 class CRM_OauthLogin_Utils_PseudoConstants {
 
@@ -14,5 +15,11 @@ class CRM_OauthLogin_Utils_PseudoConstants {
         ->column('label', 'name');
     }
     return $roles;
+  }
+
+  public static function contactMatchers(): array {
+    /** @var Service $service */
+    $service = \Civi::service('civi.oauthlogin');
+    return $service->getContactMatcherList();
   }
 }

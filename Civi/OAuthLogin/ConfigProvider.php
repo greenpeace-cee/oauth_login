@@ -2,7 +2,12 @@
 
 namespace Civi\OAuthLogin;
 
-class ConfigProvider {
+use Civi\Core\Service\AutoService;
+
+/**
+ * @service civi.oauthlogin.config
+ */
+class ConfigProvider extends AutoService {
 
   public const MODE_DISABLED = 'disabled';
   public const MODE_OPTIONAL = 'optional';
@@ -17,6 +22,10 @@ class ConfigProvider {
 
   public function isProvisioningEnabled(): bool {
     return $this->readBool('oauth_login_provisioning_enabled');
+  }
+
+  public function getContactMatchier(): string {
+    return $this->get('oauth_login_contact_matcher');
   }
 
   /**

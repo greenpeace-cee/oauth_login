@@ -2,8 +2,9 @@
 
 require_once 'oauth_login.civix.php';
 
-use Civi\OAuthLogin\ConfigProvider;
+use Civi\OAuthLogin\Service;
 use Civi\OAuthLogin\Subscriber\LoginFormSubscriber;
+use Civi\OAuthLogin\Subscriber\PasswordAuthBlockSubscriber;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Reference;
@@ -16,11 +17,10 @@ use CRM_OauthLogin_ExtensionUtil as E;
  * @link https://docs.civicrm.org/dev/en/latest/hooks/hook_civicrm_container/
  */
 function oauth_login_civicrm_container(ContainerBuilder $container): void {
-  $container->autowire(ConfigProvider::class)->setPublic(TRUE);
-
   $container->findDefinition('dispatcher')
     // Comment any line to disable the feature.
-    ->addMethodCall('addSubscriber', [new Definition(LoginFormSubscriber::class, [new Reference(ConfigProvider::class)])])
+    ->addMethodCall('addSubscriber', [new Definition(LoginFormSubscriber::class, [new Reference('civi.oauthlogin.config')])])
+    ->addMethodCall('addSubscriber', [new Definition(PasswordAuthBlockSubscriber::class, [new Reference('civi.oauthlogin.config')])])
   ;
 }
 
@@ -127,11 +127,9 @@ function oauth_login_civicrm_oauthReturn($tokenRecord, &$nextUrl) {
   if (CRM_Core_Session::getLoggedInContactID()) {
     return;
   }
-  $idToken = new \Civi\OAuth\Login\IdToken($tokenRecord);
+  $idToken = new \Civi\OAuthLogin\IdToken($tokenRecord);
   if (!$idToken->validate()) {
-    foreach ($idToken->getValidationMessages() as $message) {
-      Civi::log('oauth_login')->error("ID Token validation error for OAuthClient {$tokenRecord['client_id']}: {$message}");
-    }
+    Civi::log('oauth_login')->error("ID Token validation error for OAuthClient {$tokenRecord['client_id']}");
     CRM_Core_Session::setStatus(
       E::ts('Unable to validate ID claims provided by the identity provider.'),
       E::ts('Login failed'),
@@ -140,6 +138,9 @@ function oauth_login_civicrm_oauthReturn($tokenRecord, &$nextUrl) {
     $nextUrl = CRM_Utils_System::url('civicrm/login');
     return;
   }
-  $idToken->login();
+
+  /** @var Service $service */
+  $service = \Civi::service('civi.oauthlogin');
+  $service->login($idToken);
 }
 

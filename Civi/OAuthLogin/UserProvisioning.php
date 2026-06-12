@@ -1,6 +1,8 @@
 <?php
 
-namespace Civi\OAuth\Login;
+namespace Civi\OAuthLogin;
+
+use Civi\OAuthLogin\ConfigProvider;
 
 class UserProvisioning {
 
@@ -11,62 +13,39 @@ class UserProvisioning {
     $this->config = new ConfigProvider();
   }
 
-  public function createUser(IdToken $token):? array {
-    $firstName = $token->getFirstName();
-    $lastName = $token->getLastName();
-    $email = $token->getEmail();
-    // Contact first — User.contact_id FK needs it to exist.
-    $contactCreate = \Civi\Api4\Contact::create(FALSE)
-      ->addValue('contact_type', 'Individual');
-    if ($firstName !== NULL) {
-      $contactCreate->addValue('first_name', $firstName);
+  public function createUser(IdToken $idToken):? array {
+    /** @var Service */
+    $service = \Civi::service('civi.oauthlogin');
+    $matcher = $service->getContactMatcher();
+    $contactId = NULL;
+    if ($matcher) {
+      $contactId = $matcher->match($idToken);
     }
-    if ($lastName !== NULL) {
-      $contactCreate->addValue('last_name', $lastName);
-    }
-    if ($email !== '' && filter_var($email, FILTER_VALIDATE_EMAIL)) {
-      $contactCreate->addChain('email', \Civi\Api4\Email::create(FALSE)
-        ->addValue('contact_id', '$id')
-        ->addValue('email', $email)
-        ->addValue('is_primary', TRUE));
-    }
-    $contact = $contactCreate->execute()->first();
+    if (!empty($contactId)) {
+      $username = $idToken->getEmail();
+      $ufName = $idToken->getEmail();
+      try {
+        $user = \Civi\Api4\User::create(FALSE)
+          ->addValue('username', $username)
+          ->addValue('uf_name', $ufName)
+          ->addValue('contact_id', $contactId)
+          ->addValue('is_active', TRUE)
+          ->execute()
+          ->first();
+        
+        \Civi::log()->debug('OAuth Login: Created new user', ['user_id' => $user['id']]);
 
-    $username = $token->getEmail();
-    $ufName = $token->getEmail();
-    try {
-      $user = \Civi\Api4\User::create(FALSE)
-        ->addValue('username', $username)
-        ->addValue('uf_name', $ufName)
-        ->addValue('contact_id', $contact['id'])
-        ->addValue('is_active', TRUE)
-        ->execute()
-        ->first();
-      
-      \Civi::log()->debug('OAuth Login: Created new user', ['user_id' => $user['id']]);
-
-      $user['user_id'] = $user['id'];
-      $user['is_active'] = TRUE;
-      $user['subject'] = '';
-      $user = $this->linkUserToOAuthIdentity($user, $token);
-      $this->assignDefaultRoles((int) $user['user_id']);
-      return $user;
-
+        $user['user_id'] = $user['id'];
+        $user['is_active'] = TRUE;
+        $user['subject'] = '';
+        $user = $this->linkUserToOAuthIdentity($user, $idToken);
+        $this->assignDefaultRoles((int) $user['user_id']);
+        return $user;
+      }
+      catch (\Throwable $e) {
+        $matcher->revert($idToken, $contactId);
+      }
     }
-    catch (\Throwable $e) {
-      // Clean up the orphan Contact + Email rows we just created. Anything
-      // beyond the User INSERT failing leaves a dangling person record on
-      // the contact list otherwise.
-      \Civi\Api4\Email::delete(FALSE)
-        ->addWhere('contact_id', '=', $contact['id'])
-        ->execute();
-      \Civi\Api4\Contact::delete(FALSE)
-        ->addWhere('id', '=', $contact['id'])
-        ->setUseTrash(FALSE)
-        ->execute();
-      return NULL;
-    }
-
     return NULL;
   }
 

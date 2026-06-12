@@ -34,6 +34,25 @@ return [
     'is_env_loadable' => TRUE,
     'global_name' => 'CIVICRM_OAUTH_LOGIN_PROVISIONING_ENABLED',
   ],
+  'oauth_login_contact_matcher' => [
+    'group' => 'oauth_login',
+    'name' => 'oauth_login_contact_matcher',
+    'type' => 'String',
+    'default' => '',
+    'html_type' => 'select',
+    'title' => E::ts('Contcat Creation Mechanism'),
+    'description' => E::ts('When Auto-provision is enabled this setting determines how linked contacts are created.'),
+    'is_domain' => 1,
+    'is_contact' => 0,
+    'is_env_loadable' => TRUE,
+    'global_name' => 'CIVICRM_OAUTH_LOGIN_CONTACT_MATCHER',
+    'pseudoconstant' => [
+      'callback' => 'CRM_OauthLogin_Utils_PseudoConstants::contactMatchers',
+    ],
+    'html_attributes' => [
+      'class' => 'crm-select2',
+    ],
+  ],
   'oauth_login_attr_username' => [
     'group' => 'oauth_login',
     'name' => 'oauth_login_attr_username',
