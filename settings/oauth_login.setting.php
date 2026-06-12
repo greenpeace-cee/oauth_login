@@ -44,8 +44,6 @@ return [
     'description' => E::ts('How to handle the contact creation upon login. Each user record in CiviCRM has a related contact record.'),
     'is_domain' => 1,
     'is_contact' => 0,
-    'is_env_loadable' => TRUE,
-    'global_name' => 'CIVICRM_OAUTH_LOGIN_CONTACT_CREATE_MATCHER',
     'pseudoconstant' => [
       'callback' => 'CRM_OauthLogin_Utils_PseudoConstants::contactCreateMatchers',
     ],
@@ -63,8 +61,6 @@ return [
     'description' => E::ts('How to handle contact updates upon login. Each user record in CiviCRM has a related contact record.'),
     'is_domain' => 1,
     'is_contact' => 0,
-    'is_env_loadable' => TRUE,
-    'global_name' => 'CIVICRM_OAUTH_LOGIN_CONTACT_UPDATE_MATCHER',
     'pseudoconstant' => [
       'callback' => 'CRM_OauthLogin_Utils_PseudoConstants::contactUpdateMatchers',
     ],
