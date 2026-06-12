@@ -1,6 +1,6 @@
 <?php
 
-namespace Civi\OAuth\Login;
+namespace Civi\OAuthLogin;
 
 class ConfigProvider {
 
