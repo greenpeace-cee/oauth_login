@@ -7,6 +7,7 @@
 namespace Civi\OAuthLogin\Subscriber;
 
 use Civi\API\Event\AuthorizeEvent;
+use Civi\Core\Service\AutoSubscriber;
 use Civi\OAuthLogin\ConfigProvider;
 use Civi\Standalone\Event\LoginEvent;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
@@ -29,9 +30,12 @@ use Symfony\Component\EventDispatcher\EventSubscriberInterface;
  *    password and bypass SSO. We refuse to authorize the request when OAuth Login is
  *    required.
  */
-class PasswordAuthBlockSubscriber implements EventSubscriberInterface {
+class PasswordAuthBlockSubscriber extends AutoSubscriber {
 
-  public function __construct(private readonly ConfigProvider $config) {}
+  /**
+   * @inject civi.oauthlogin.config
+   */
+  public function __construct(private ConfigProvider $config) {}
 
   public static function getSubscribedEvents(): array {
     return [

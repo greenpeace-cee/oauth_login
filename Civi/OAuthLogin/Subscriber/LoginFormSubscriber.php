@@ -9,14 +9,13 @@ namespace Civi\OAuthLogin\Subscriber;
 use Civi\Api4\OAuthClient;
 use Civi\Api4\OAuthProvider;
 use Civi\Core\Event\GenericHookEvent;
+use Civi\Core\Service\AutoSubscriber;
 use Civi\OAuthLogin\ConfigProvider;
 use CRM_Afform_Page_AfformBase;
-use Symfony\Component\EventDispatcher\EventSubscriberInterface;
-
-use CRM_OauthLogin_ExtensionUtil as E;
 use CRM_Standaloneusers_Page_ChangePassword;
+use CRM_OauthLogin_ExtensionUtil as E;
 
-/**
+/** 
  * Modifies the Standalone auth pages to honour oauthlogin_auth_mode.
  *
  * MODE_DISABLED: this subscriber is a no-op.
@@ -42,9 +41,12 @@ use CRM_Standaloneusers_Page_ChangePassword;
  * Standalone serves these pages via CRM_Core_Page subclasses that load
  * Angular modules — no CRM_Core_Form, so we listen on hook_civicrm_pageRun.
  */
-class LoginFormSubscriber implements EventSubscriberInterface {
+class LoginFormSubscriber extends AutoSubscriber {
 
-  public function __construct(private readonly ConfigProvider $config) {}
+  /**
+   * @inject civi.oauthlogin.config
+   */
+  public function __construct(private ConfigProvider $config) {}
 
   public static function getSubscribedEvents(): array {
     return ['hook_civicrm_pageRun' => 'onPageRun'];

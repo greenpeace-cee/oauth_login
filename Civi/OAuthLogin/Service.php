@@ -110,9 +110,9 @@ class Service extends AutoService {
       ]);
       $session = \CRM_Core_Session::singleton();
       $session->set('oauth_login_is_oauth_session', TRUE);
-      $session->set('oauth_login_session_state', $idToken->tokenRecord['raw']['session_state']);
+      /*$session->set('oauth_login_session_state', $idToken->tokenRecord['raw']['session_state']);
       $session->set('oauth_login_access_token', $idToken->tokenRecord['raw']['access_token']);
-      $session->set('oauth_login_refresh_token', $idToken->tokenRecord['raw']['refresh_token']);
+      $session->set('oauth_login_refresh_token', $idToken->tokenRecord['raw']['refresh_token']);*/
     }
   }
 

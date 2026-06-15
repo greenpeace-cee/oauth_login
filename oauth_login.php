@@ -3,26 +3,7 @@
 require_once 'oauth_login.civix.php';
 
 use Civi\OAuthLogin\Service;
-use Civi\OAuthLogin\Subscriber\LoginFormSubscriber;
-use Civi\OAuthLogin\Subscriber\PasswordAuthBlockSubscriber;
-use Symfony\Component\DependencyInjection\ContainerBuilder;
-use Symfony\Component\DependencyInjection\Definition;
-use Symfony\Component\DependencyInjection\Reference;
-
 use CRM_OauthLogin_ExtensionUtil as E;
-
-/**
- * Implements hook_civicrm_container().
- *
- * @link https://docs.civicrm.org/dev/en/latest/hooks/hook_civicrm_container/
- */
-function oauth_login_civicrm_container(ContainerBuilder $container): void {
-  $container->findDefinition('dispatcher')
-    // Comment any line to disable the feature.
-    ->addMethodCall('addSubscriber', [new Definition(LoginFormSubscriber::class, [new Reference('civi.oauthlogin.config')])])
-    ->addMethodCall('addSubscriber', [new Definition(PasswordAuthBlockSubscriber::class, [new Reference('civi.oauthlogin.config')])])
-  ;
-}
 
 /**
  * Implements hook_civicrm_config().
