@@ -116,6 +116,16 @@ class Service extends AutoService {
     }
   }
 
+  public function logout() {
+    $userSystem = \CRM_Core_Config::singleton()->userSystem;
+    $session = \CRM_Core_Session::singleton();
+    $userSystem->logout();
+    $postLogoutUrl = $userSystem->postLogoutUrl();
+    $session->set('oauth_login_is_oauth_session', NULL);
+    \CRM_Core_Session::setStatus(E::ts('You have been logged out.'), E::ts('Logout'), 'info', ['expires' => 0]);
+    \CRM_Utils_System::redirect($postLogoutUrl);
+  }
+
   private function loginFailed(string $reason) {
     CRM_Core_Session::setStatus($reason, E::ts('Login failed'), 'error');
     CRM_Utils_System::redirect(CRM_Utils_System::url('civicrm/login'));

@@ -4,7 +4,6 @@ namespace Civi\OAuthLogin\Subscriber;
 
 use Civi\Core\Event\GenericHookEvent;
 use Civi\Core\Service\AutoSubscriber;
-use Civi\OAuth\OAuthLeagueFacade;
 
 /**
  * Checks on every request whether the OAuth access token
@@ -12,10 +11,8 @@ use Civi\OAuth\OAuthLeagueFacade;
  */
 class AccessTokenSubscriber extends AutoSubscriber {
 
-  private $syncFields = ['access_token', 'refresh_token', 'expires', 'token_type'];
-
   public static function getSubscribedEvents(): array {
-    return ['civi.invoke.auth' => [['onInvokeAuth', 110]]];
+    return ['civi.invoke.auth' => 'onInvokeAuth'];
   }
 
   /**
@@ -32,37 +29,26 @@ class AccessTokenSubscriber extends AutoSubscriber {
     if (!$userSystem->isUserLoggedIn()) {
       return;
     }
+    $doLogout = FALSE;
     $session = \CRM_Core_Session::singleton();
-    $allTokens = $session->get('OAuthSessionTokens');
-    $OAuthSessionTokenCount = $session->get('OAuthSessionTokenCount');
-    if (!is_array($allTokens) || empty($allTokens)) {
-      return;
-    }
-    /** @var OAuthLeagueFacade $oauth **/
-    $oauth = \Civi::service('oauth2.league');
-    foreach($allTokens as $index => $tokenRecord) {
-      $provider = $oauth->createProvider(['id' => $tokenRecord['client_id']]);
-      $token = new \League\OAuth2\Client\Token\AccessToken($tokenRecord['raw']);
-      if ($token->hasExpired()) {
-        try {
-          $newToken = $provider->getAccessToken('refresh_token', ['refresh_token' => $tokenRecord['refresh_token']]);
-          $raw = $newToken->jsonSerialize();
-          $allTokens[$index]['raw'] = $raw;
-          foreach ($this->syncFields as $field) {
-            if (isset($raw[$field])) {
-              $allTokens[$index][$field] = $raw[$field];
-            }
-          }
-          \CRM_OAuth_Hook::oauthToken('refresh', 'OAuthSessionToken', $allTokens[$index]['raw']);
-        } catch (\Exception $e) {
-          // Removed the token from allTokens.
-          unset($allTokens[$index]);
-          $OAuthSessionTokenCount--;
-        }
+    if ($session->get('oauth_login_is_oauth_session')) {
+      try {
+        $tokens = civicrm_api4('OAuthSessionToken', 'refresh', [
+          'checkPermissions' => FALSE,
+          'where' => [
+            ['tag', '=', 'Login'],
+          ],
+        ]);
+        $doLogout = $tokens->count() > 0 ? FALSE : TRUE;
+      } catch (\Throwable $e) {
+        $doLogout = true;
       }
     }
-    $session->set('OAuthSessionTokens', $allTokens);
-    $session->set('OAuthSessionTokenCount', $OAuthSessionTokenCount);
+    if ($doLogout) {
+      /** @var \Civi\OAuthLogin\Service $service */
+      $service = \Civi::service('civi.oauthlogin');
+      $service->logout();
+    }
   }
   
 }
