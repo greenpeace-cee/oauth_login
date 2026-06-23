@@ -1,0 +1,150 @@
+<?php
+use CRM_OauthLogin_ExtensionUtil as E;
+
+return [
+  [
+    'name' => 'SavedSearch_OAuth_Login_Actions',
+    'entity' => 'SavedSearch',
+    'cleanup' => 'unused',
+    'update' => 'unmodified',
+    'params' => [
+      'version' => 4,
+      'values' => [
+        'name' => 'OAuth_Login_Actions',
+        'label' => E::ts('OAuth Login Actions'),
+        'api_entity' => 'OAuthLoginAction',
+        'api_params' => [
+          'version' => 4,
+          'select' => [
+            'id',
+            'is_active',
+            'weight',
+            'OAuthLoginAction_OAuthClient_client_id_01.provider:label',
+            'type',
+          ],
+          'orderBy' => [],
+          'where' => [],
+          'groupBy' => [],
+          'join' => [
+            [
+              'OAuthClient AS OAuthLoginAction_OAuthClient_client_id_01',
+              'LEFT',
+              [
+                'client_id',
+                '=',
+                'OAuthLoginAction_OAuthClient_client_id_01.id',
+              ],
+            ],
+          ],
+          'having' => [],
+        ],
+      ],
+      'match' => ['name'],
+    ],
+  ],
+  [
+    'name' => 'SavedSearch_OAuth_Login_Actions_SearchDisplay_OAuth_Login_Actions',
+    'entity' => 'SearchDisplay',
+    'cleanup' => 'unused',
+    'update' => 'unmodified',
+    'params' => [
+      'version' => 4,
+      'values' => [
+        'name' => 'OAuth_Login_Actions',
+        'label' => E::ts('OAuth Login Actions'),
+        'saved_search_id.name' => 'OAuth_Login_Actions',
+        'type' => 'table',
+        'settings' => [
+          'description' => NULL,
+          'sort' => [],
+          'limit' => 50,
+          'pager' => [],
+          'placeholder' => 5,
+          'actions' => TRUE,
+          'classes' => ['table', 'table-striped'],
+          'columnMode' => 'custom',
+          'actions_display_mode' => 'menu',
+          'columns' => [
+            [
+              'type' => 'field',
+              'key' => 'id',
+              'label' => E::ts('ID'),
+              'sortable' => TRUE,
+            ],
+            [
+              'type' => 'field',
+              'key' => 'type',
+              'label' => E::ts('Type'),
+              'sortable' => TRUE,
+            ],
+            [
+              'type' => 'field',
+              'key' => 'is_active',
+              'label' => E::ts('Is active'),
+              'sortable' => TRUE,
+            ],
+            [
+              'type' => 'field',
+              'key' => 'OAuthLoginAction_OAuthClient_client_id_01.provider:label',
+              'label' => E::ts('Oauth Provider'),
+              'sortable' => TRUE,
+            ],
+            [
+              'text' => '',
+              'style' => 'default',
+              'size' => 'btn-xs',
+              'icon' => 'fa-bars',
+              'links' => [
+                [
+                  'path' => '/civicrm/admin/oauth/oauthloginactions/form?id=[id]&action=update',
+                  'icon' => 'fa-pencil',
+                  'text' => E::ts('Edit'),
+                  'style' => 'default',
+                  'conditions' => [],
+                  'task' => '',
+                  'entity' => '',
+                  'action' => '',
+                  'join' => '',
+                  'target' => 'crm-popup',
+                ],
+                [
+                  'path' => '',
+                  'icon' => 'fa-trash',
+                  'text' => E::ts('Delete'),
+                  'style' => 'danger',
+                  'conditions' => [],
+                  'task' => 'delete',
+                  'entity' => 'OAuthLoginAction',
+                  'action' => '',
+                  'join' => '',
+                  'target' => 'crm-popup',
+                ],
+              ],
+              'type' => 'menu',
+              'alignment' => 'text-right',
+            ],
+          ],
+          'draggable' => 'weight',
+          'toolbar' => [
+            [
+              'path' => '/civicrm/admin/oauth/oauthloginactions/form?&action=add',
+              'icon' => 'fa-plug-circle-plus',
+              'text' => E::ts('New Login Action'),
+              'style' => 'success',
+              'conditions' => [],
+              'task' => '',
+              'entity' => '',
+              'action' => '',
+              'join' => '',
+              'target' => 'crm-popup',
+            ],
+          ],
+        ],
+      ],
+      'match' => [
+        'saved_search_id',
+        'name',
+      ],
+    ],
+  ],
+];

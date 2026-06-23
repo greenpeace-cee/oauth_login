@@ -9,6 +9,7 @@ namespace Civi\OAuthLogin;
 use Civi\Core\Service\AutoService;
 use Civi\OAuthLogin\ContactMatcher\BasicContactMatcher;
 use Civi\OAuthLogin\ContactMatcher\ContactMatcher;
+use Civi\OAuthLogin\Event\AuthenticationEvent;
 use CRM_Utils_System;
 use CRM_Core_Session;
 use CRM_OauthLogin_ExtensionUtil as E;
@@ -89,11 +90,13 @@ class Service extends AutoService {
   public function login(IdToken $idToken): void {
     $userProvisioning = new UserProvisioning();
     $user = $userProvisioning->findExistingUser($idToken);
+    $isNewUser = false;
     if (!empty($user)) {
       $user = $userProvisioning->updateUser($idToken, $user);
     } 
     if (empty($user) && $this->configProvider->isProvisioningEnabled()) {
       $user = $userProvisioning->createUser($idToken);
+      $isNewUser = true;
     } elseif (empty($user)) {
       $this->loginFailed(E::ts('No active user was found for the provided identity. Make sure your email matches the one used by your identity provider.'));
     }
@@ -101,6 +104,12 @@ class Service extends AutoService {
       if (empty($user['subject']) || $user['subject'] != $idToken->getSubject()) {
         $this->loginFailed(E::ts('User is already linked to a different remote identity of the same identity provider.'));
       }
+
+      /**
+       * Call the pre authentication event
+       */
+      \Civi::dispatcher()->dispatch('civi.oauthlogin.preauthentication', new AuthenticationEvent($idToken, $user['id'], $user['contact_id'], $isNewUser));
+
       authx_login([
         'flow' => 'login',
         'useSession' => TRUE,
@@ -110,6 +119,11 @@ class Service extends AutoService {
       ]);
       $session = \CRM_Core_Session::singleton();
       $session->set('oauth_login_is_oauth_session', TRUE);
+
+      /**
+       * Call the post authentication event
+       */
+      \Civi::dispatcher()->dispatch('civi.oauthlogin.postauthentication', new AuthenticationEvent($idToken, $user['id'], $user['contact_id'], $isNewUser));
       /*$session->set('oauth_login_session_state', $idToken->tokenRecord['raw']['session_state']);
       $session->set('oauth_login_access_token', $idToken->tokenRecord['raw']['access_token']);
       $session->set('oauth_login_refresh_token', $idToken->tokenRecord['raw']['refresh_token']);*/

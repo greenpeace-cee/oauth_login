@@ -105,17 +105,13 @@ class UserProvisioning {
 
     // no existing link found, look up active users by email
     $oauthIdentity = \Civi\Api4\User::get(FALSE)
-      ->addSelect('id', 'user_oauth_identity.subject as subject', 'is_active', 'contact_id')
-      ->addJoin('UserOAuthIdentity AS user_oauth_identity', 'LEFT', ['id', '=', 'user_oauth_identity.user_id'])
-      ->addWhere('user_oauth_identity.client_id', '=', $token->getClientId())
+      ->addSelect('id', 'is_active', 'contact_id')
       ->addWhere('uf_name', '=', $token->getEmail())
       ->execute()
       ->first();
 
     if (!empty($oauthIdentity)) {
-      if (empty($oauthIdentity['subject'])) {
-        $oauthIdentity = $this->linkUserToOAuthIdentity($oauthIdentity, $token);
-      }
+      $oauthIdentity = $this->linkUserToOAuthIdentity($oauthIdentity, $token);
       $oauthIdentity = User::get(FALSE)
         ->addWhere('id', '=', $oauthIdentity['id'])
         ->execute()

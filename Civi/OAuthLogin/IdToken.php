@@ -2,6 +2,8 @@
 
 namespace Civi\OAuthLogin;
 
+use League\OAuth2\Client\Token\AccessToken;
+
 /**
  * In OAuthTokenFacade the acces token is converted into an array.
  * The OpenID ID Token is decoded and stored as $tokenRecord['resource_owner']
@@ -69,6 +71,25 @@ class IdToken {
 
   public function getLastName():? string {
     return $this->tokenRecord['resource_owner']['family_name'] ?? NULL;
+  }
+
+  public function getTokenRecord(): array {
+    return $this->tokenRecord;
+  }
+
+  public function getClaim(array $claim): mixed {
+    $token = $claim['token'] ?? 'idToken';
+    $strClaim = $claim['claim'] ?? 'sub';
+    if ($token == 'accessToken') {
+      if (isset($this->tokenRecord['raw'][$strClaim])) {
+        return $this->tokenRecord['raw'][$strClaim];
+      }
+    } else {
+      if (isset($this->tokenRecord['resource_owner'][$strClaim])) {
+        return $this->tokenRecord['resource_owner'][$strClaim];
+      }
+    }
+    return NULL;
   }
 
 }
