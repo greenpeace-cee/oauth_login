@@ -78,8 +78,8 @@ class SyncUserRoles extends AbstractLoginAction {
     }
     $form->add('select', 'token', E::ts('Token'), ['idToken' => E::ts('ID'), 'accessToken' => E::ts('Access')], TRUE, [ 'class' => 'medium']);
     $form->add('text', 'claim', E::ts('Claim'), ['class' => 'huge'], TRUE);
-    $form->addYesNo('limit_to_roles', E::ts('Limit to CiviCRM roles'), FALSE, TRUE);
-    $form->addCheckBox('selected_roles', E::ts('Limit to this CiviCRM Roles'), $options);
+    $form->addYesNo('limit_to_roles', E::ts('Limit to specific CiviCRM roles'), FALSE, TRUE);
+    $form->addCheckBox('selected_roles', E::ts('Only synchronize these'), $options);
 
     if (isset($action['configuration']['claim'])) {
       $form->setDefaults(['claim' => $action['configuration']['claim']['token']]);

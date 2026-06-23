@@ -6,7 +6,9 @@
 </div>
 <div class="crm-section">
   <div class="label">{$form.limit_to_roles.label}</div>
-  <div class="content">{$form.limit_to_roles.html}</div>
+  <div class="content">{$form.limit_to_roles.html}
+    <p class="description">{ts}No means synchronize every CiviCRM role if a user has these roles in their claim.{/ts}
+  </div>
   <div class="clear"></div>
 </div>
 <div class="crm-section" id="selectedRolesSection">
