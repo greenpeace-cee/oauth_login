@@ -18,7 +18,7 @@ class SyncUserRoles extends AbstractLoginAction {
    * @return String
    */
   public function getTitle(): string {
-    return E::ts('Sync user roles');
+    return E::ts('Synchronize CiviCRM user roles');
   }
 
   /**

@@ -23,6 +23,7 @@ class Factory extends AutoSubscriber {
   public function __construct()
   {
     $this->addLoginAction(SyncUserRoles::class);
+    $this->addLoginAction(SyncAclGroups::class);
   }
 
   public static function getSubscribedEvents(): array {

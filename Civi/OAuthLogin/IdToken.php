@@ -81,13 +81,29 @@ class IdToken {
     $token = $claim['token'] ?? 'idToken';
     $strClaim = $claim['claim'] ?? 'sub';
     if ($token == 'accessToken') {
-      if (isset($this->tokenRecord['raw'][$strClaim])) {
-        return $this->tokenRecord['raw'][$strClaim];
-      }
+      return static::getSubValueOfClaim($strClaim, $this->tokenRecord['raw']);
     } else {
-      if (isset($this->tokenRecord['resource_owner'][$strClaim])) {
-        return $this->tokenRecord['resource_owner'][$strClaim];
+      return static::getSubValueOfClaim($strClaim, $this->tokenRecord['resource_owner']);
+    }
+    return NULL;
+  }
+
+  /**
+   * If claim is realm_access.roles 
+   * and in data this is $data[realm_access][roles] =...
+   * then that value will be return.
+   */
+  private static function getSubValueOfClaim(string $claim, array $data) {
+    [$firstClaim, $nextClaim] = explode(".", $claim, 2);
+    if (array_key_exists($firstClaim, $data)) {
+      if (!strlen($nextClaim)) {
+        return $data[$firstClaim];
+      } elseif (strlen($nextClaim) && is_array($data[$firstClaim])) {
+        return static::getSubValueOfClaim($nextClaim, $data[$firstClaim]);
       }
+    }
+    if (array_key_exists($claim, $data)) {
+      return $data[$claim];
     }
     return NULL;
   }
