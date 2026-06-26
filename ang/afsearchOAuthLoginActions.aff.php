@@ -1,5 +1,5 @@
 <?php
-use CRM_OauthLogin_ExtensionUtil as E;
+use CRM_OAuthLogin_ExtensionUtil as E;
 
 return [
   'type' => 'search',

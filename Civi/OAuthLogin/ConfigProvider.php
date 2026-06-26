@@ -24,12 +24,36 @@ class ConfigProvider extends AutoService {
     return $this->readBool('oauth_login_provisioning_enabled');
   }
 
-  public function getContactCreateMatchier(): string {
+  public function getContactCreateMatcher(): string {
     return $this->get('oauth_login_contact_create_matcher');
   }
 
-  public function getContactUpdateMatchier(): string {
+  public function getContactCreateMatcherConfig(): array {
+    $config = $this->get('oauth_login_contact_create_matcher_config');
+    if (is_array($config)) {
+      return $config;
+    }
+    return [];
+  }
+
+  public function setContactCreateMatcherConfig(array $configuration) {
+    \Civi::settings()->set('oauth_login_contact_create_matcher_config', $configuration);
+  }
+
+  public function getContactUpdateMatcher(): string {
     return $this->get('oauth_login_contact_update_matcher');
+  }
+
+  public function getContactUpdateMatcherConfig(): array {
+    $config = $this->get('oauth_login_contact_update_matcher_config');
+    if (is_array($config)) {
+      return $config;
+    }
+    return [];
+  }
+
+  public function setContactUpdateMatcherConfig(array $configuration) {
+    \Civi::settings()->set('oauth_login_contact_update_matcher_config', $configuration);
   }
 
   /**

@@ -1,10 +1,10 @@
 <?php
-use CRM_OauthLogin_ExtensionUtil as E;
+use CRM_OAuthLogin_ExtensionUtil as E;
 
 return [
   'name' => 'OAuthLoginAction',
   'table' => 'civicrm_oauth_login_action',
-  'class' => 'CRM_OauthLogin_DAO_OAuthLoginAction',
+  'class' => 'CRM_OAuthLogin_DAO_OAuthLoginAction',
   'getInfo' => fn() => [
     'title' => E::ts('OAuthLoginAction'),
     'title_plural' => E::ts('OAuthLoginActions'),
@@ -72,6 +72,9 @@ return [
       'input_attrs' => [
         'maxlength' => 255,
       ],
+      'pseudoconstant' => [
+         'callback' => [\CRM_OAuthLogin_BAO_OAuthLoginAction::class, 'getTypes'],
+       ]
     ],
     'configuration' => [
       'title' => E::ts('Configuration'),

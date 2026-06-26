@@ -1,10 +1,10 @@
 <?php
-use CRM_OauthLogin_ExtensionUtil as E;
+use CRM_OAuthLogin_ExtensionUtil as E;
 
 /**
  * Collection of upgrade steps.
  */
-class CRM_OauthLogin_Upgrader extends \CRM_Extension_Upgrader_Base {
+class CRM_OAuthLogin_Upgrader extends \CRM_Extension_Upgrader_Base {
 
   // By convention, functions that look like "function upgrade_NNNN()" are
   // upgrade tasks. They are executed in order (like Drupal's hook_update_N).

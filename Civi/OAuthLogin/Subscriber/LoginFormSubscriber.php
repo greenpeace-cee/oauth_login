@@ -13,7 +13,7 @@ use Civi\Core\Service\AutoSubscriber;
 use Civi\OAuthLogin\ConfigProvider;
 use CRM_Afform_Page_AfformBase;
 use CRM_Standaloneusers_Page_ChangePassword;
-use CRM_OauthLogin_ExtensionUtil as E;
+use CRM_OAuthLogin_ExtensionUtil as E;
 
 /** 
  * Modifies the Standalone auth pages to honour oauthlogin_auth_mode.

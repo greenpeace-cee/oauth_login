@@ -1,10 +1,10 @@
 <?php
-use CRM_OauthLogin_ExtensionUtil as E;
+use CRM_OAuthLogin_ExtensionUtil as E;
 
 return [
   'name' => 'UserOAuthIdentity',
   'table' => 'civicrm_user_oauth_identity',
-  'class' => 'CRM_OauthLogin_DAO_UserOAuthIdentity',
+  'class' => 'CRM_OAuthLogin_DAO_UserOAuthIdentity',
   'getInfo' => fn() => [
     'title' => E::ts('UserOAuthIdentity'),
     'title_plural' => E::ts('UserOAuthIdentities'),

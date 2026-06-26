@@ -1,6 +1,6 @@
 <?php
 
-use CRM_OauthLogin_ExtensionUtil as E;
+use CRM_OAuthLogin_ExtensionUtil as E;
 
 return [
   'oauth_login_mode' => [
@@ -44,12 +44,15 @@ return [
     'description' => E::ts('How to handle the contact creation upon login. Each user record in CiviCRM has a related contact record.'),
     'is_domain' => 1,
     'is_contact' => 0,
+    'is_required' => TRUE,
     'pseudoconstant' => [
-      'callback' => 'CRM_OauthLogin_Utils_PseudoConstants::contactCreateMatchers',
+      'callback' => 'CRM_OAuthLogin_Utils_PseudoConstants::contactCreateMatchers',
     ],
     'html_attributes' => [
-      'class' => 'crm-select2',
+      'class' => 'crm-select2 huge',
+      'placeholder' => E::ts(' - Select one - ')
     ],
+    'settings_pages' => ['oauth_login' => ['section' => 'contact_create']],
   ],
   'oauth_login_contact_update_matcher' => [
     'group' => 'oauth_login',
@@ -61,64 +64,41 @@ return [
     'description' => E::ts('How to handle contact updates upon login. Each user record in CiviCRM has a related contact record.'),
     'is_domain' => 1,
     'is_contact' => 0,
+    'is_required' => FALSE,
     'pseudoconstant' => [
-      'callback' => 'CRM_OauthLogin_Utils_PseudoConstants::contactUpdateMatchers',
+      'callback' => 'CRM_OAuthLogin_Utils_PseudoConstants::contactUpdateMatchers',
     ],
     'html_attributes' => [
-      'class' => 'crm-select2',
+      'class' => 'crm-select2 huge',
+      'placeholder' => E::ts('Do not update')
     ],
+    'settings_pages' => ['oauth_login' => ['section' => 'contact_update']],
   ],
-  'oauth_login_attr_username' => [
+  'oauth_login_username_claim' => [
     'group' => 'oauth_login',
-    'name' => 'oauth_login_attr_username',
+    'name' => 'oauth_login_username_claim',
     'type' => 'String',
     'default' => 'username',
     'html_type' => 'text',
-    'title' => E::ts('OAuth attribute: username'),
-    'description' => E::ts('Name of the OAuth attribute that carries the username. Leave blank to skip username when provisioning / fall back to NameID.'),
+    'title' => E::ts('Username Claim'),
+    'description' => E::ts('Name of the OAuth claim in the access token that carries the username.'),
     'is_domain' => 1,
     'is_contact' => 0,
     'is_env_loadable' => TRUE,
     'global_name' => 'CIVICRM_OAUTH_LOGIN_ATTR_USERNAME',
   ],
-  'oauth_login_attr_email' => [
+  'oauth_login_email_claim' => [
     'group' => 'oauth_login',
-    'name' => 'oauth_login_attr_email',
+    'name' => 'oauth_login_email_claim',
     'type' => 'String',
     'default' => 'email',
     'html_type' => 'text',
-    'title' => E::ts('OAuth attribute: email'),
-    'description' => E::ts('Name of the OAuth attribute that carries the email address. Leave blank to fall back to NameID when match field is email.'),
+    'title' => E::ts('E-mail claim'),
+    'description' => E::ts('Name of the OAuth claim in the access token that carries the email address.'),
     'is_domain' => 1,
     'is_contact' => 0,
     'is_env_loadable' => TRUE,
     'global_name' => 'CIVICRM_OAUTH_LOGIN_ATTR_EMAIL',
-  ],
-  'oauth_loginattr_first_name' => [
-    'group' => 'oauth_login',
-    'name' => 'oauth_login_attr_first_name',
-    'type' => 'String',
-    'default' => 'firstName',
-    'html_type' => 'text',
-    'title' => E::ts('OAuth attribute: first name'),
-    'description' => E::ts('Leave blank to skip first name.'),
-    'is_domain' => 1,
-    'is_contact' => 0,
-    'is_env_loadable' => TRUE,
-    'global_name' => 'CIVICRM_OAUTH_LOGIN_ATTR_FIRST_NAME',
-  ],
-  'oauth_login_attr_last_name' => [
-    'group' => 'oauth_login',
-    'name' => 'oauth_login_attr_last_name',
-    'type' => 'String',
-    'default' => 'lastName',
-    'html_type' => 'text',
-    'title' => E::ts('OAuth attribute: last name'),
-    'description' => E::ts('Leave blank to skip last name.'),
-    'is_domain' => 1,
-    'is_contact' => 0,
-    'is_env_loadable' => TRUE,
-    'global_name' => 'CIVICRM_OAUTH_LOGIN_ATTR_LAST_NAME',
   ],
   'oauth_login_default_roles' => [
     'group' => 'oauth_login',
@@ -133,11 +113,12 @@ return [
     'is_env_loadable' => TRUE,
     'global_name' => 'CIVICRM_OAUTH_LOGIN_DEFAULT_ROLES',
     'pseudoconstant' => [
-      'callback' => 'CRM_OauthLogin_Utils_PseudoConstants::roles',
+      'callback' => 'CRM_OAuthLogin_Utils_PseudoConstants::roles',
     ],
     'html_attributes' => [
-      'class' => 'crm-select2',
+      'class' => 'crm-select2 huge',
       'multiple' => 1,
+      'placeholder' => E::ts('None'),
     ],
   ],
 ];

@@ -7,19 +7,23 @@
 namespace Civi\OAuthLogin;
 
 use Civi\Core\Service\AutoService;
-use Civi\OAuthLogin\ContactMatcher\BasicContactMatcher;
-use Civi\OAuthLogin\ContactMatcher\ContactMatcher;
+use Civi\OAuthLogin\ContactMatcher\BasicCreateContactMatcher;
+use Civi\OAuthLogin\ContactMatcher\BasicUpdateContactMatcher;
+use Civi\OAuthLogin\ContactMatcher\CreateContactMatcher;
+use Civi\OAuthLogin\ContactMatcher\UpdateContactMatcher;
 use Civi\OAuthLogin\Event\AuthenticationEvent;
 use CRM_Utils_System;
 use CRM_Core_Session;
-use CRM_OauthLogin_ExtensionUtil as E;
+use CRM_OAuthLogin_ExtensionUtil as E;
 
 /**
  * @service civi.oauthlogin
  */
 class Service extends AutoService {
 
-  protected $contactMatchers = [];
+  protected $contactCreateMatchers = [];
+
+  protected $contactUpdateMatchers = [];
 
   protected $contactCreateMatcherList = [];
 
@@ -36,22 +40,31 @@ class Service extends AutoService {
   public function __construct(ConfigProvider $configProvider)
   {
     $this->configProvider = $configProvider;
-    $this->addMatcher(new BasicContactMatcher());
+    $this->addCreateContactMatcher(new BasicCreateContactMatcher());
+    $this->addUpdateContactMatcher(new BasicUpdateContactMatcher());
   }
 
-  public function addMatcher(ContactMatcher $matcher) {
-    $this->contactMatchers[$matcher->getName()] = $matcher;
-    $this->contactCreateMatcherList[$matcher->getName()] = $matcher->getTitleForCreate();
-    $this->contactUpdateMatcherList[$matcher->getName()] = $matcher->getTitleForUpdate();
+  public function addCreateContactMatcher(CreateContactMatcher $matcher) {
+    $this->contactCreateMatchers[$matcher->getName()] = $matcher;
+    $this->contactCreateMatcherList[$matcher->getName()] = $matcher->getTitle();
+  }
+
+  public function addUpdateContactMatcher(UpdateContactMatcher $matcher) {
+    $this->contactUpdateMatchers[$matcher->getName()] = $matcher;
+    $this->contactUpdateMatcherList[$matcher->getName()] = $matcher->getTitle();
   }
 
   /**
    * Get the contact matcher class for creating a contact.
    */
-  public function getContactCreateMatcher():? ContactMatcher {
-    $name = $this->configProvider->getContactCreateMatchier();
-    if (!empty($name) && isset($this->contactMatchers[$name])) {
-      return $this->contactMatchers[$name];
+  public function getContactCreateMatcher(?string $name = NULL):? CreateContactMatcher {
+    if ($name === NULL) {
+      $name = $this->configProvider->getContactCreateMatcher();
+    }
+    if (!empty($name) && isset($this->contactCreateMatchers[$name])) {
+      $matcher = $this->contactCreateMatchers[$name];
+      $matcher->setConfiguration($this->configProvider->getContactCreateMatcherConfig());
+      return $matcher;
     }
     return NULL;
   }
@@ -59,10 +72,14 @@ class Service extends AutoService {
   /**
    * Get the contact matcher class for updating an existing contact.
    */
-  public function getContactUpdateMatcher():? ContactMatcher {
-    $name = $this->configProvider->getContactUpdateMatchier();
-    if (!empty($name) && isset($this->contactMatchers[$name])) {
-      return $this->contactMatchers[$name];
+  public function getContactUpdateMatcher(?string $name = NULL):? UpdateContactMatcher {
+    if ($name === NULL) {
+      $name = $this->configProvider->getContactUpdateMatcher();
+    }
+    if (!empty($name) && isset($this->contactUpdateMatchers[$name])) {
+      $matcher = $this->contactUpdateMatchers[$name];
+      $matcher->setConfiguration($this->configProvider->getContactUpdateMatcherConfig());
+      return $matcher;
     }
     return NULL;
   }
@@ -124,9 +141,6 @@ class Service extends AutoService {
        * Call the post authentication event
        */
       \Civi::dispatcher()->dispatch('civi.oauthlogin.postauthentication', new AuthenticationEvent($idToken, $user['id'], $user['contact_id'], $isNewUser));
-      /*$session->set('oauth_login_session_state', $idToken->tokenRecord['raw']['session_state']);
-      $session->set('oauth_login_access_token', $idToken->tokenRecord['raw']['access_token']);
-      $session->set('oauth_login_refresh_token', $idToken->tokenRecord['raw']['refresh_token']);*/
     }
   }
 

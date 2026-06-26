@@ -6,10 +6,10 @@
  * The ExtensionUtil class provides small stubs for accessing resources of this
  * extension.
  */
-class CRM_OauthLogin_ExtensionUtil {
+class CRM_OAuthLogin_ExtensionUtil {
   const SHORT_NAME = 'oauth_login';
   const LONG_NAME = 'oauth_login';
-  const CLASS_PREFIX = 'CRM_OauthLogin';
+  const CLASS_PREFIX = 'CRM_OAuthLogin';
 
   /**
    * Translate a string using the extension's domain.
@@ -87,18 +87,18 @@ class CRM_OauthLogin_ExtensionUtil {
 
 }
 
-use CRM_OauthLogin_ExtensionUtil as E;
+use CRM_OAuthLogin_ExtensionUtil as E;
 
 spl_autoload_register('_oauth_login_civix_class_loader', TRUE, TRUE);
 
 function _oauth_login_civix_class_loader($class) {
-  if ($class === 'CRM_OauthLogin_DAO_Base') {
+  if ($class === 'CRM_OAuthLogin_DAO_Base') {
     if (version_compare(CRM_Utils_System::version(), '5.74.beta', '>=')) {
-      class_alias('CRM_Core_DAO_Base', 'CRM_OauthLogin_DAO_Base');
+      class_alias('CRM_Core_DAO_Base', 'CRM_OAuthLogin_DAO_Base');
       // ^^ Materialize concrete names -- encourage IDE's to pick up on this association.
     }
     else {
-      $realClass = 'CiviMix\\Schema\\OauthLogin\\DAO';
+      $realClass = 'CiviMix\\Schema\\OAuthLogin\\DAO';
       class_alias($realClass, $class);
       // ^^ Abstract names -- discourage IDE's from picking up on this association.
     }
@@ -106,7 +106,7 @@ function _oauth_login_civix_class_loader($class) {
   }
 
   // This allows us to tap-in to the installation process (without incurring real file-reads on typical requests).
-  if (strpos($class, 'CiviMix\\Schema\\OauthLogin\\') === 0) {
+  if (strpos($class, 'CiviMix\\Schema\\OAuthLogin\\') === 0) {
     // civimix-schema@5 is designed for backported use in download/activation workflows,
     // where new revisions may become dynamically available.
     pathload()->loadPackage('civimix-schema@5', TRUE);

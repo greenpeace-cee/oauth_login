@@ -3,7 +3,7 @@
 use Civi\Api4\OAuthClient;
 use Civi\Api4\OAuthLoginAction;
 use Civi\Api4\OAuthProvider;
-use CRM_OauthLogin_ExtensionUtil as E;
+use CRM_OAuthLogin_ExtensionUtil as E;
 
 class CRM_OAuthLogin_Form_OAuthLoginAction extends CRM_Core_Form {
 
@@ -146,7 +146,9 @@ class CRM_OAuthLogin_Form_OAuthLoginAction extends CRM_Core_Form {
         ->setValues($params)
         ->execute();
     }
-    CRM_Utils_System::redirect($redirectUrl);
+    if (empty($this->snippet)) {
+      CRM_Utils_System::redirect($redirectUrl);
+    }
     parent::postProcess();
 
   }

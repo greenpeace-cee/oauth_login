@@ -42,9 +42,9 @@
     <psr4 prefix="Civi\" path="Civi"/>
   </classloader>
   <civix>
-    <namespace>CRM/OauthLogin</namespace>
+    <namespace>CRM/OAuthLogin</namespace>
     <format>25.10.2</format>
-    <angularModule>crmOauthLogin</angularModule>
+    <angularModule>crmOAuthLogin</angularModule>
   </civix>
   <mixins>
     <mixin>mgd-php@2.0.0</mixin>
@@ -55,7 +55,7 @@
     <mixin>entity-types-php@2.0.0</mixin>
     <mixin>setting-admin@1.0.1</mixin>
   </mixins>
-  <upgrader>CiviMix\Schema\OauthLogin\AutomaticUpgrader</upgrader>
+  <upgrader>CiviMix\Schema\OAuthLogin\AutomaticUpgrader</upgrader>
   <requires>
     <ext>oauth-client</ext>
   </requires>

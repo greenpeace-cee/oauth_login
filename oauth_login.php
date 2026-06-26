@@ -3,7 +3,7 @@
 require_once 'oauth_login.civix.php';
 
 use Civi\OAuthLogin\Service;
-use CRM_OauthLogin_ExtensionUtil as E;
+use CRM_OAuthLogin_ExtensionUtil as E;
 
 /**
  * Implements hook_civicrm_config().

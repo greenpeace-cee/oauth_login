@@ -3,7 +3,7 @@
 use Civi\Api4\Role;
 use Civi\OAuthLogin\Service;
 
-class CRM_OauthLogin_Utils_PseudoConstants {
+class CRM_OAuthLogin_Utils_PseudoConstants {
 
   public static function roles(): array {
     static $roles = [];

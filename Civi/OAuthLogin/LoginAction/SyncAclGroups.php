@@ -8,7 +8,7 @@ namespace Civi\OAuthLogin\LoginAction;
 
 use Civi\Api4\Group;
 use Civi\Api4\GroupContact;
-use CRM_OauthLogin_ExtensionUtil as E;
+use CRM_OAuthLogin_ExtensionUtil as E;
 
 class SyncAclGroups extends AbstractLoginAction {
 

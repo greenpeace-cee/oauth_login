@@ -2,13 +2,18 @@
 <menu>
   <item>
     <path>civicrm/login/oauth</path>
-    <page_callback>CRM_OauthLogin_Page_OAuthLogin</page_callback>
+    <page_callback>CRM_OAuthLogin_Page_OAuthLogin</page_callback>
     <title>OAuthLogin</title>
     <access_arguments>*always allow*</access_arguments>
   </item>
   <item>
     <path>civicrm/admin/oauth/oauthloginactions/form</path>
-    <page_callback>CRM_OauthLogin_Form_OAuthLoginAction</page_callback>
+    <page_callback>CRM_OAuthLogin_Form_OAuthLoginAction</page_callback>
+    <access_arguments>administer CiviCRM</access_arguments>
+  </item>
+  <item>
+    <path>civicrm/admin/setting/oauth_login</path>
+    <page_callback>CRM_OAuthLogin_Form_Settings</page_callback>
     <access_arguments>administer CiviCRM</access_arguments>
   </item>
 </menu>

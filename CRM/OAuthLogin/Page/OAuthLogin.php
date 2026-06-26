@@ -1,9 +1,9 @@
 <?php
 
 use Civi\Api4\OAuthClient;
-use CRM_OauthLogin_ExtensionUtil as E;
+use CRM_OAuthLogin_ExtensionUtil as E;
 
-class CRM_OauthLogin_Page_OAuthLogin extends CRM_Core_Page {
+class CRM_OAuthLogin_Page_OAuthLogin extends CRM_Core_Page {
 
   public function run() {
     if (CRM_Core_Session::getLoggedInContactID()) {

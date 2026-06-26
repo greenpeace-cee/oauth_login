@@ -8,7 +8,7 @@ namespace Civi\OAuthLogin\LoginAction;
 
 use Civi\Api4\Role;
 use Civi\Api4\UserRole;
-use CRM_OauthLogin_ExtensionUtil as E;
+use CRM_OAuthLogin_ExtensionUtil as E;
 
 class SyncUserRoles extends AbstractLoginAction {
 

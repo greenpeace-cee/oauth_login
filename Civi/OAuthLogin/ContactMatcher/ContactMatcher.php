@@ -10,37 +10,12 @@ use Civi\OAuthLogin\IdToken;
 
 abstract class ContactMatcher {
 
-  protected array $config = [];
+  protected array $configuation = [];
 
   /**
-   * Match a contact.
-   * 
-   * @param IdToken $idToken
-   *   The user ID token coming from the OAuth Provider
-   *   The IdToke class is ouw facade around the above.
-   *   Making getting data easier.
-   * 
-   *   When NULL is returned no user is created.
-   * 
-   * @return int 
-   *  Returns the Contact ID. Return NULL when creating a contact failed.
+   * Returns the transalted title of this matcher
    */
-  abstract public function findOrCreate(IdToken $idToken):? int;
-
-  /**
-   * Update an existing contact upon login.
-   * 
-   * @param $existingContactId
-   *   The existing contact ID of the user
-   * @param IdToken $idToken
-   *   The user ID token coming from the OAuth Provider
-   *   The IdToke class is ouw facade around the above.
-   *   Making getting data easier.
-   * 
-   * @return int 
-   *  Returns the Contact ID
-   */
-  abstract public function update(int $existingContactId, IdToken $idToken): int;
+  abstract public function getTitle(): string;
 
   /**
    * Reverts the contact creation because something went wrong when 
@@ -56,23 +31,44 @@ abstract class ContactMatcher {
     // Do nothing
   }
 
-  /**
-   * Returns the transalted title of this matcher
-   */
-  abstract public function getTitleForCreate(): string;
-
-  /**
-   * Returns the transalted title of this matcher
-   */
-  abstract public function getTitleForUpdate(): string;
-
-  public function setConfig(array $config) {
-    $this->config;
+  public function setConfiguration(array $configuration) {
+    $this->configuation = $configuration;
   }
 
   public function getName(): string {
     $name = str_replace('\\', '.', get_class($this));
     return strtolower($name);
+  }
+
+  protected function requiredClaims(): array {
+    return [];
+  }
+
+  public function buildConfigurationForm(\CRM_Core_Form $form, string $fieldNamePrefix) {
+    $claimFields = [];
+    foreach($this->requiredClaims() as $claim ) {
+      $fieldName = $fieldNamePrefix.$claim['claim'];
+      $config = [];
+      if (isset($this->configuation[$claim['claim']])) {
+        $config[$fieldName] = $this->configuation[$claim['claim']];
+      }
+      \CRM_OAuthLogin_Utils_Form::addClaimField($form, $claim['label'], $fieldName, $claim['required'] ?? false, $config, $claim['default'], $claim['default_token']);
+      $claimFields[] = $fieldName;
+    }
+    $form->assign('claimfields', $claimFields);
+  }
+
+  public function getConfigurationTemplateFileName(): ?string {
+    return "CRM/OAuthLogin/Form/ContactMatcher/ContactMatcher.tpl";
+  }
+
+  public function processConfiguration(array $submittedValues, string $fieldNamePrefix): ?array {
+    $configuration = [];
+    foreach($this->requiredClaims() as $claim ) {
+      $fieldName = $fieldNamePrefix.$claim['claim'];
+      $configuration[$claim['claim']] = \CRM_OAuthLogin_Utils_Form::processClaimField($submittedValues, $fieldName);
+    }
+    return $configuration;
   }
 
 }

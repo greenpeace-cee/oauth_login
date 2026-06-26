@@ -1,5 +1,5 @@
 <?php
-use CRM_OauthLogin_ExtensionUtil as E;
+use CRM_OAuthLogin_ExtensionUtil as E;
 
 return [
   [
@@ -73,7 +73,7 @@ return [
             ],
             [
               'type' => 'field',
-              'key' => 'type',
+              'key' => 'type:label',
               'label' => E::ts('Type'),
               'sortable' => TRUE,
             ],
