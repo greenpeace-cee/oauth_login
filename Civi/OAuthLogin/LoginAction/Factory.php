@@ -6,7 +6,9 @@
 
 namespace Civi\OAuthLogin\LoginAction;
 
+use Civi\Api4\Generic\AutocompleteAction;
 use Civi\Api4\OAuthLoginAction;
+use Civi\API\Event\PrepareEvent;
 use Civi\Core\Service\AutoSubscriber;
 use Civi\OAuthLogin\Event\AuthenticationEvent;
 
@@ -29,6 +31,7 @@ class Factory extends AutoSubscriber {
   public static function getSubscribedEvents(): array {
     return [
       'civi.oauthlogin.preauthentication' => 'preAuthentication',
+      'civi.api.prepare' => ['onApiPrepareForAutoComplete'],
     ];
   }
 
@@ -62,6 +65,21 @@ class Factory extends AutoSubscriber {
     }
   }
 
+  public function onApiPrepareForAutoComplete(PrepareEvent $event) {
+    $apiRequest = $event->getApiRequest();
+    if (is_object($apiRequest) && $apiRequest instanceof AutocompleteAction) {
+      if (str_starts_with($apiRequest->getFormName(), 'qf:CRM_OAuthLogin_Form_OAuthLoginAction')) {
+        $fieldName = $apiRequest->getFieldName();
+        list($class, $field) = explode(".", $fieldName);
+        $name = $this->classToName($class);
+        $loginAction = $this->getLoginAction($name);
+        if ($loginAction !== NULL) {
+          $loginAction->prepareAutocomplete($apiRequest, $field);
+        }
+      }
+    }
+  }
+
   /**
    * Add a Post Login Action class.
    * 
@@ -69,8 +87,7 @@ class Factory extends AutoSubscriber {
    *   The name of the class
    */
   public function addLoginAction(string $class) {
-    $name = str_replace('\\', '.', $class);
-    $name = str_replace(".loginaction.", ".", strtolower($name));
+    $name = $this->classToName($class);
     $this->loginActions[$name] = $class;
   }
 
@@ -103,6 +120,12 @@ class Factory extends AutoSubscriber {
       }
     }
     return $titles;
+  }
+
+  private function classToName(string $class): string {
+    $name = str_replace('\\', '.', $class);
+    $name = str_replace(".loginaction.", ".", strtolower($name));
+    return $name;
   }
 
 }

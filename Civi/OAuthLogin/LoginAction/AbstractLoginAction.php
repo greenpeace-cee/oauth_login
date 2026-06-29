@@ -2,6 +2,7 @@
 
 namespace Civi\OAuthLogin\LoginAction;
 
+use Civi\Api4\Generic\AutocompleteAction;
 use Civi\OAuthLogin\IdToken;
 
 abstract class AbstractLoginAction {
@@ -59,5 +60,13 @@ abstract class AbstractLoginAction {
 
   public function processConfiguration(array $submittedValues): ?array {
     return NULL;
+  }
+
+  /**
+   * This function can be used in child classes to specify the filters for the autocomplete.
+   * See the SyncAclGroups class for an example.
+   */
+  public function prepareAutocomplete(AutocompleteAction $apiRequest, string $field) {
+    // Do nothing.
   }
 }

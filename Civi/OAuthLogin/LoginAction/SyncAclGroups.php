@@ -6,6 +6,7 @@
 
 namespace Civi\OAuthLogin\LoginAction;
 
+use Civi\Api4\Generic\AutocompleteAction;
 use Civi\Api4\Group;
 use Civi\Api4\GroupContact;
 use CRM_OAuthLogin_ExtensionUtil as E;
@@ -78,8 +79,7 @@ class SyncAclGroups extends AbstractLoginAction {
       'placeholder' => E::ts('- Select groups -'),
       'select' => ['minimumInputLength' => 0, 'multiple' => TRUE,],
       'api' => [
-        'fieldName' => 'Group.title',
-        'filters' => static::getGroupWhereParameters(),
+        'fieldName' => static::class . '.selected_groups',
       ]
     ]);
 
@@ -98,6 +98,16 @@ class SyncAclGroups extends AbstractLoginAction {
       $form->setDefaults(['selected_groups' => implode(",", $action['configuration']['selected_groups'])]);
     }
 
+  }
+
+  /**
+   * This function can be used in child classes to specify the filters for the autocomplete.
+   * See the SyncAclGroups class for an example.
+   */
+  public function prepareAutocomplete(AutocompleteAction $apiRequest, string $field) {
+    foreach(static::getGroupWhereParameters() as $whereClause) {
+      $apiRequest->addFilter($whereClause[0], $whereClause);
+    }
   }
 
   public function getConfigurationTemplateFileName(): ?string {
